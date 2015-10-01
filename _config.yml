@@ -1,0 +1,21 @@
+# Permalinks
+#
+# Use of `relative_permalinks` ensures post links from the index work properly.
+permalink:           pretty
+relative_permalinks: true
+
+# Setup
+title:               ethackal 
+tagline:             ''
+description:         ''
+url:                 http://ethackal.github.ip
+baseurl:             ''
+paginate:            5
+
+# About/contact
+author:
+  name:              ethcakal
+  url:               https://twitter.com/ethackal
+
+# Ignore
+exclude:             [ Gemfile, Gemfile.lock, Readme.md, LICENSE.md ]
