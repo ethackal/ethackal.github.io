@@ -3,9 +3,9 @@ layout: post
 title: Derbycon CTF - WAV Steganography
 ---
 
-I recently attended Kentucky for DerbyCon, teaming up with several coworkers to participate in the Capture the Flag competition as Paid2Penetrate.  After 48 hours of hacking, and a near photo finish, we walked out of the CTF room in 3rd place. I knocked out two relatively high-value challenges in the first hours of the competition, setting us up for an early lead. The first was an encryption challenge in the form of three documents: a plaintext clue, the ciphertext of the clue, and an encrypted message containing the flag. The second challenge was presented as a WAV file and the directory structure of the server indicated that we'd have to extract the flag hidden within using steganography.
+I recently attended DerbyCon in Louisville, Kentucky, teaming up with several co-workers to participate in the Capture the Flag competition as [Paid2Penetrate](https://www.youtube.com/watch?v=JGhoLcsr8GA).  After 48 hours of hacking, and a near photo finish, we walked out of the CTF room in 3rd place. I am particularly proud of having knocked out two relatively high-value challenges in the early hours of the competition. The first was an encryption challenge in the form of three documents: a plaintext clue, the ciphertext of the clue, and an encrypted message containing the flag. The second challenge was presented as a WAV file and the directory naming where the file was found hinted that we'd have to extract the flag hidden within using steganography.
 
-There have been a few write-ups of the encryption challenge, but I haven't seen any on the WAV steganography. While a little more involved, all that's required to recover the hidden flag is a basic understanding of steganographic techniques and knowledge of the WAV format.
+There have been a few write-ups of the encryption challenge, but I have yet to see any on the WAV steganography. While a little more involved, all that is required to recover the hidden flag is a basic understanding of steganographic techniques and knowledge of the WAV format.
 
 > **ste·ga·no·graph·y**  
 > /ˌsteɡəˈnäɡrəfi/ _noun_  
@@ -24,12 +24,50 @@ require 'wav-file'
 
 wav = open("Assignment1.wav")
 format = WavFile::readFormat(wav)
+# <WavFile::Format:0x007f872a034860 @id=1, @channel=2, @hz=44100, @bytePerSec=176400, @blockSize=4, @bitPerSample=16> 
 chunk = WavFile::readDataChunk(wav)
+
 wav.close
 {% endhighlight %}
 
-At this point, we've read in two chunks from the WAV file. The first provides format information and lets us know the bit-depth, or size of each sample. The second chunk is LPCM data; the samples that make up the encoded waveform. Examining the format chunk, we can see that the file is using 16-bit encoding, meaning each sample will be stored in a 16-bit signed integer. The gem example goes on to unpack the binary bitstream into an array of integers, but we don't really need to go through all of that. Instead, we can just read off 16-bits at a time and capture the LSB.
+At this point, we've read in two chunks from the WAV file. The first provides format information and lets us know the bit-depth, or size of each sample. The second chunk is LPCM data; the samples that make up the encoded waveform. Inspecting the format chunk, we can see that the file is using 16-bit encoding, meaning each sample will be stored in a 16-bit signed integer. We can #unpack the binary data to expand each sample into an array.
 
 {% highlight ruby %}
+wavs = dataChunk.data.unpack('s*')
+{% endhighlight %}
 
+Now, to get the LSB for each sample. Ruby provides bit reference access via Fixnum#[], where index 0 represents the LSB. Easy enough to #map the array of unmapped values. We'll turn that result into a string of binary digits while we're at it.
+
+{% highlight ruby %}
+lsb = wavs.map{|sample| sample[0]}.join
+{% endhighlight %}
+
+This is unexpected... There are a whole lot of zeros there. It looks like every sample has a LSB of 0 except for the those at the very end of the chunk. Starting at index 1146416. Let's grab the binary starting at the first occurance and see what we can make of it by packing it back into a string.
+
+{% highlight ruby %}
+flag = lsb[(lsb.index('1'))..-1]
+# "1000110001100110100101101100111000010110010011000110001010010110110011100001011011001100011001101001011011001110000101100100001000110110101011101010011001100010100101101100111000010110"
+puts [flag].pack('b*')
+# 1fish2Fish3fishBlueFish
+{% endhighlight %}
+
+The only thing left to do is submit the flag for 400 points!
+
+[Challenge WAV]({{ site.url }}/resources/derbycon-ctf-wav-stegenography/Assignment1.wav)
+
+Complete code for extracting the flag:
+
+{% highlight ruby %}
+require 'wav-file'
+
+wav = open("Assignment1.wav")
+format = WavFile::readFormat(wav)
+chunk = WavFile::readDataChunk(wav)
+
+wav.close
+
+wavs = dataChunk.data.unpack('s\*')
+lsb = wavs.map{|sample| sample[0]}.join
+flag = lsb[(lsb.index('1'))..-1]
+puts [flag].pack('b*')
 {% endhighlight %}
