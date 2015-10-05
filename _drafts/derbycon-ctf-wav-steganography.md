@@ -13,7 +13,7 @@ There have been a few write-ups of the encryption challenge, but I have yet to s
 
 One of the most rudimentary digital steganography techniques is called _least significant bit (LSB) insertion_. This is often used with carrier file formats that involve lossless compression, such as is found in bitmap (BMP) images and WAV audio files. BMP is a little more straight forward to understand, so let's explore the technique in terms of digital images and then apply that to the WAV format used in the CTF.
 
-Depending on the color depth used for an image, pixels may be composed of many bits that describe their color. One of the most common color depths uses 24 bits for each pixel, 3 bytes to determine the intensity of each primary color (Red, Green and Blue) and the fourth byte to encode an Alpha channel that describes a level of transparency. With a color space covering over 16 million possible variations, minor alterations are not visible to a human observer. A message can be inserted into a cover image by  adjusting the LSB of each channel to match a corresponding bit in the secret. There are a lot of problems with such a simplistic technique, but this is a CTF, not super spy-level stuff, so it's a good bet it's the type of steganography used.
+Depending on the color depth used for an image, pixels may be composed of many bits that describe their color. One of the most common color depths uses 24 bits for each pixel, 8 bits to determine the intensity of each primary color (Red, Green and Blue). With a color space covering over 16 million possible variations, minor alterations are not visible to a human observer. A message can be inserted into a cover image by  adjusting the LSB of each channel to match a corresponding bit in the secret. There are a lot of problems with such a simplistic technique, but this is a CTF, not super spy-level stuff, so it's a good bet for the type of steganography used.
 
 With a little mental stretching, WAV can be thought of as the audio version of a BMP image. Instead of the pixels that make up digital pictures, the file contains a linear pulse-code modulation (LPCM) bitstream that encodes samples of an analog audio waveform at uniform intervals. The bitstream is usually uncompressed, though lossless compression is supported. Much like a BMP's pixels, adjustments to the LSB of each sample are inaudible and can be used to embed a hidden message one bit at a time.
 
@@ -30,19 +30,19 @@ chunk = WavFile::readDataChunk(wav)
 wav.close
 {% endhighlight %}
 
-At this point, we've read in two chunks from the WAV file. The first provides format information and lets us know the bit-depth, or size of each sample. The second chunk is LPCM data; the samples that make up the encoded waveform. Inspecting the format chunk, we can see that the file is using 16-bit encoding, meaning each sample will be stored in a 16-bit signed integer. We can #unpack the binary data to expand each sample into an array.
+At this point, we've read in two chunks from the WAV file. The first provides format information and lets us know the bit-depth, or size of each sample. The second chunk is LPCM data; the samples that make up the encoded waveform. Inspecting the format chunk, we can see that the file is using 16-bit encoding, meaning each sample will be stored in a 16-bit signed integer. We can [#unpack](http://www.rubydoc.info/stdlib/core/String:unpack) the binary data to expand each sample into an array of the 16-bit integers.
 
 {% highlight ruby %}
 wavs = dataChunk.data.unpack('s*')
 {% endhighlight %}
 
-Now, to get the LSB for each sample. Ruby provides bit reference access via Fixnum#[], where index 0 represents the LSB. Easy enough to #map the array of unmapped values. We'll turn that result into a string of binary digits while we're at it.
+Now, to get the LSB for each sample. Ruby provides bit reference access via [Fixnum#[]](http://www.rubydoc.info/stdlib/core/Fixnum:%5B%5D), where index 0 represents the LSB. Easy enough to [#map](http://www.rubydoc.info/stdlib/core/Array:map) the array of unpacked values and [#join](http://www.rubydoc.info/stdlib/core/Array:join) that result into a string of binary digits while we're at it.
 
 {% highlight ruby %}
 lsb = wavs.map{|sample| sample[0]}.join
 {% endhighlight %}
 
-This is unexpected... There are a whole lot of zeros there. It looks like every sample has a LSB of 0 except for the those at the very end of the chunk. Starting at index 1146416. Let's grab the binary starting at the first occurance and see what we can make of it by packing it back into a string.
+This is unexpected... There are a whole lot of zeros there. It looks like every sample has a LSB of 0 except for the those at the very end of the chunk, starting at index 1146416. Let's grab the binary starting at the first occurence of '1' and see what we can make of it by [#pack](http://www.rubydoc.info/stdlib/core/Array:pack)ing it back into a string.
 
 {% highlight ruby %}
 flag = lsb[(lsb.index('1'))..-1]
@@ -51,7 +51,7 @@ puts [flag].pack('b*')
 # 1fish2Fish3fishBlueFish
 {% endhighlight %}
 
-The only thing left to do is submit the flag for 400 points!
+That looks like a flag! The only thing left to do is submit it for 400 points!
 
 [Challenge WAV]({{ site.url }}/resources/derbycon-ctf-wav-stegenography/Assignment1.wav)
 
