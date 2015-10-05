@@ -18,4 +18,4 @@ author:
   url:               https://twitter.com/ethackal
 
 # Ignore
-exclude:             [ Gemfile, Gemfile.lock, Readme.md, LICENSE.md ]
+exclude:             [ Gemfile, Gemfile.lock, Readme.md, licenses ]
