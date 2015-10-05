@@ -33,7 +33,7 @@ wav.close
 At this point, we've read in two chunks from the WAV file. The first provides format information and lets us know the bit-depth, or size of each sample. The second chunk is LPCM data; the samples that make up the encoded waveform. Inspecting the format chunk, we can see that the file is using 16-bit encoding, meaning each sample will be stored in a 16-bit signed integer. We can [#unpack](http://www.rubydoc.info/stdlib/core/String:unpack) the binary data to expand each sample into an array of the 16-bit integers.
 
 {% highlight ruby %}
-wavs = dataChunk.data.unpack('s*')
+wavs = chunk.data.unpack('s*')
 {% endhighlight %}
 
 Now, to get the LSB for each sample. Ruby provides bit reference access via [Fixnum#[]](http://www.rubydoc.info/stdlib/core/Fixnum:%5B%5D), where index 0 represents the LSB. Easy enough to [#map](http://www.rubydoc.info/stdlib/core/Array:map) the array of unpacked values and [#join](http://www.rubydoc.info/stdlib/core/Array:join) that result into a string of binary digits while we're at it.
@@ -68,7 +68,7 @@ chunk = WavFile::readDataChunk(wav)
 
 wav.close
 
-wavs = dataChunk.data.unpack('s\*')
+wavs = chunk.data.unpack('s\*')
 lsb = wavs.map{|sample| sample[0]}.join
 flag = lsb[(lsb.index('1'))..-1]
 puts [flag].pack('b*')
