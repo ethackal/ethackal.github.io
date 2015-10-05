@@ -40,6 +40,8 @@ Now, to get the LSB for each sample. Ruby provides bit reference access via [Fix
 
 {% highlight ruby %}
 lsb = wavs.map{|sample| sample[0]}.join
+# 00000000000000000000000000000000000000<snip a lot of zeros>...
+# 1000110001100110100101101100111000010110010011000110001010010110110011100001011011001100011001101001011011001110000101100100001000110110101011101010011001100010100101101100111000010110
 {% endhighlight %}
 
 This is unexpected... There are a whole lot of zeros there. It looks like every sample has a LSB of 0 except for the those at the very end of the chunk, starting at index 1146416. Let's grab the binary starting at the first occurence of '1' and see what we can make of it by [#pack](http://www.rubydoc.info/stdlib/core/Array:pack)ing it back into a string.
@@ -53,7 +55,7 @@ puts [flag].pack('b*')
 
 That looks like a flag! The only thing left to do is submit it for 400 points!
 
-[Challenge WAV]({{ site.url }}/resources/derbycon-ctf-wav-stegenography/Assignment1.wav)
+[Challenge WAV]({{ site.url }}/resources/derbycon-ctf-wav-steganography/Assignment1.wav)
 
 Complete code for extracting the flag:
 
