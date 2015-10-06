@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Derbycon CTF - WAV Steganography
+title: DerbyCon CTF - WAV Steganography
 ---
 
 I recently attended DerbyCon in Louisville, Kentucky, teaming up with several co-workers to participate in the Capture the Flag competition as [Paid2Penetrate](https://www.youtube.com/watch?v=JGhoLcsr8GA).  After 48 hours of hacking, and a near photo finish, we walked out of the CTF room in 3rd place. I am particularly proud of having knocked out two relatively high-value challenges in the early hours of the competition. The first was an encryption challenge in the form of three documents: a plaintext clue, the ciphertext of the clue, and an encrypted message containing the flag. The second challenge was presented as a WAV file and the directory naming where the file was found hinted that we'd have to extract the flag hidden within using steganography.
